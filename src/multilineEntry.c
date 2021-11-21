@@ -5,13 +5,63 @@
 
 static const char *MODULE = "MultilineEntry";
 
+#ifdef __APPLE__
+#include <objc/objc-runtime.h>
+#include <CoreFoundation/CoreFoundation.h>
+struct uiDarwinControl {
+	uiControl c;
+	uiControl *parent;
+	BOOL enabled;
+	BOOL visible;
+	void *SyncEnableState;
+	void *SetSuperview;
+	void *HugsTrailingEdge;
+	void *HugsBottom;
+	void *ChildEdgeHuggingChanged;
+	void *HuggingPriority;
+	void *SetHuggingPriority;
+	void *ChildVisibilityChanged;
+};
+struct uiMultilineEntry {
+	struct uiDarwinControl c;
+	id sv; // NSScrollView
+	id tv; // intrinsicSizeTextView
+};
+inline void fix_darkmode(uiMultilineEntry *me)
+{
+	((void (*)(id, SEL, id))objc_msgSend)(
+		me->tv, SELUID("setBackgroundColor:"),
+		((id (*)(Class, SEL))objc_msgSend)(
+			objc_getClass("NSColor"), SELUID("textBackgroundColor")
+		)
+	);
+	((void (*)(id, SEL, id))objc_msgSend)(
+		me->tv, SELUID("setTextColor:"),
+		((id (*)(Class, SEL))objc_msgSend)(
+			objc_getClass("NSColor"), SELUID("textColor")
+		)
+	);
+	((void (*)(id, SEL, CFStringRef))objc_msgSend)(
+		me->tv, SELUID("setString:"), CFSTR("\n")
+	);
+}
+#endif
+
 LIBUI_FUNCTION(create) {
-	uiControl *ctrl = uiControl(uiNewNonWrappingMultilineEntry());
+	uiMultilineEntry *me = uiNewNonWrappingMultilineEntry();
+	uiControl *ctrl = uiControl(me);
+#ifdef __APPLE__
+	fix_darkmode(me);
+#endif
 	return control_handle_new(env, ctrl, "multilineEntry");
 }
 
 LIBUI_FUNCTION(createWrapping) {
-	uiControl *ctrl = uiControl(uiNewMultilineEntry());
+	uiMultilineEntry *me = uiNewMultilineEntry();
+	uiControl *ctrl = uiControl(me);
+#ifdef __APPLE__
+	fix_darkmode(me);
+#endif
 	return control_handle_new(env, ctrl, "multilineEntry");
 }
 
