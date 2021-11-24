@@ -3,9 +3,6 @@
 #include "napi_utils.h"
 #include "app.h"
 #include "event-loop.h"
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 static const char *MODULE = "EventLoop";
 static uv_barrier_t all_threads_are_waiting;
@@ -215,9 +212,6 @@ LIBUI_FUNCTION(start) {
 	ln_set_main_thread_quitted(false);
 
 	/* init libui event loop */
-#ifdef _WIN32
-	SetProcessDPIAware();
-#endif
 	uiMainSteps();
 	LIBUI_NODE_DEBUG("libui loop initialized");
 

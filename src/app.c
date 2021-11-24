@@ -7,6 +7,10 @@
 #include "event-loop.h"
 #include "events.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #ifdef __APPLE__
 #include <objc/objc-runtime.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -97,6 +101,10 @@ LIBUI_FUNCTION(init) {
 
 	status = napi_create_reference(env, global, 1, &null_ref);
 	CHECK_STATUS_THROW(status, napi_create_reference);
+
+#ifdef _WIN32
+	SetProcessDPIAware();
+#endif
 
 #ifdef __APPLE__
 	id application = ((id (*)(Class, SEL))objc_msgSend)(
